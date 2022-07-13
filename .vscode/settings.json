@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "param.h": "c",
+        "syscall.h": "c"
+    }
+}
