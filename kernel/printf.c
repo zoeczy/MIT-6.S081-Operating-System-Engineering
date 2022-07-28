@@ -132,3 +132,26 @@ printfinit(void)
   initlock(&pr.lock, "pr");
   pr.locking = 1;
 }
+
+void
+backtrace(void){
+
+  printf("backtrace:\n");
+  uint64 fp_current = r_fp();  
+  // uint64 fp_previous;
+  uint64 page_round_down = PGROUNDDOWN(fp_current);
+  uint64 page_round_up = PGROUNDUP(fp_current);
+
+  while(fp_current<page_round_up && fp_current>page_round_down){
+    
+    uint64 ra_add = fp_current - 8;
+    uint64 ra_val = * (uint64*)ra_add;
+    printf("%p\n",ra_val);
+
+    uint64 fp_previous_add = fp_current - 16;
+    uint64 fp_previous = * (uint64*) fp_previous_add;
+    
+    fp_current = fp_previous;
+  }
+  
+}
