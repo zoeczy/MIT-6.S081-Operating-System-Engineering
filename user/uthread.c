@@ -1,6 +1,10 @@
 #include "kernel/types.h"
 #include "kernel/stat.h"
 #include "user/user.h"
+#include "kernel/riscv.h"
+#include "kernel/spinlock.h"
+#include "kernel/param.h"
+#include "kernel/proc.h"
 
 /* Possible states of a thread: */
 #define FREE        0x0
@@ -14,6 +18,7 @@
 struct thread {
   char       stack[STACK_SIZE]; /* the thread's stack */
   int        state;             /* FREE, RUNNING, RUNNABLE */
+  struct context  thread_switch_ctx;
 };
 struct thread all_thread[MAX_THREAD];
 struct thread *current_thread;
@@ -58,10 +63,10 @@ thread_schedule(void)
     next_thread->state = RUNNING;
     t = current_thread;
     current_thread = next_thread;
-    /* YOUR CODE HERE
-     * Invoke thread_switch to switch from t to next_thread:
-     * thread_switch(??, ??);
-     */
+    //YOUR CODE HERE
+    //Invoke thread_switch to switch from t to next_thread:
+    //编译器生成汇编时，thread_schedule的栈已经保存了caller-saved reg，所以switch只需要保存callee-saved，同时对switch来说，ra是thread_schedule的pc.
+    thread_switch((uint64)&(t->thread_switch_ctx), (uint64)&(next_thread->thread_switch_ctx));
   } else
     next_thread = 0;
 }
@@ -76,6 +81,11 @@ thread_create(void (*func)())
   }
   t->state = RUNNABLE;
   // YOUR CODE HERE
+  // 但是得schedule再switch到这个线程才会调用给定函数吧？？？？
+  t->thread_switch_ctx.ra = (uint64)func;
+  t->thread_switch_ctx.sp = (uint64)t->stack + STACK_SIZE;
+  // 如果是函数调用，那么编译器会生成相应的ra，sp。线程切换/创建类似于函数调用，但需要自己进行ra，sp的更新。
+  // 栈结构：ra（存放调用该方法的PC计数器的值。），fp（上一栈最上边），callee保存寄存器，局部变量，sp（当前栈最下边）
 }
 
 void 
