@@ -1,3 +1,4 @@
+// xv6启动时，在pci总线上搜索E1000卡
 //
 // simple PCI-Express initialization, only
 // works for qemu and its e1000 card.

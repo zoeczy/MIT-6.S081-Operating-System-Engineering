@@ -89,6 +89,7 @@
 
 #define DATA_MAX 1518
 
+//寄存器&标志位定义
 /* Transmit Descriptor command definitions [E1000 3.3.3.1] */
 #define E1000_TXD_CMD_EOP    0x01 /* End of Packet */
 #define E1000_TXD_CMD_RS     0x08 /* Report Status */

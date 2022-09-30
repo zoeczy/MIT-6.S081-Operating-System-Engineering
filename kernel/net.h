@@ -1,3 +1,4 @@
+// network stack that implements the IP, UDP, and ARP protocols
 //
 // packet buffer management
 //
