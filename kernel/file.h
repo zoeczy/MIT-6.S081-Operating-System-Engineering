@@ -26,7 +26,11 @@ struct inode {
   short minor;
   short nlink;
   uint size;
-  uint addrs[NDIRECT+1];
+  uint addrs[NDIRECT+1+1];
+  // addrs[12+1] = address of 12 [data block] & indirect address of [indrect block]
+  // 这里indirect block是256个索引data block的address
+
+  // address[11+single+double]
 };
 
 // map major device number to device functions.
