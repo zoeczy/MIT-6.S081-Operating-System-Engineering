@@ -284,6 +284,33 @@ create(char *path, short type, short major, short minor)
 }
 
 uint64
+sys_symlink(void){
+  //char *target, char *path
+  char path[MAXPATH], target[MAXPATH];
+  struct inode *ip;
+
+  if(argstr(0, target, MAXPATH) < 0 || argstr(1, path, MAXPATH) < 0){
+    // 创建文件类型为T_SYMLINK的文件
+    return -1;
+  }
+  begin_op();
+  if ((ip = namei(path)) == 0) {
+    // the path inode does not exist
+    ip = create(path, T_SYMLINK, 0, 0);
+    iunlock(ip);
+  } 
+  ilock(ip);
+  if (writei(ip, 0, (uint64)target, ip->size, MAXPATH) != MAXPATH){
+    // 把目标路径写到inode的data block中
+    panic("symlink");
+  }
+  iunlockput(ip);
+  end_op();
+  return 0;
+
+}
+
+uint64
 sys_open(void)
 {
   char path[MAXPATH];
@@ -310,6 +337,28 @@ sys_open(void)
     }
     ilock(ip);
     if(ip->type == T_DIR && omode != O_RDONLY){
+      iunlockput(ip);
+      end_op();
+      return -1;
+    }
+  }
+
+  if((omode & O_NOFOLLOW) ==0){
+    char target_path[MAXPATH];
+    int count = 0;
+    while((ip->type == T_SYMLINK) && (count < 10) ){
+      count++;
+      if((readi(ip, 0, (uint64)target_path, ip->size-MAXPATH, MAXPATH) != MAXPATH)){
+        panic("open symlink");
+      }
+      iunlockput(ip);
+      if((ip = namei(target_path)) == 0){
+        end_op();
+        return -1;
+      }
+      ilock(ip);
+    }
+    if(count >= 10){
       iunlockput(ip);
       end_op();
       return -1;

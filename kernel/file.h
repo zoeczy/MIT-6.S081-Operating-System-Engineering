@@ -14,6 +14,8 @@ struct file {
 #define	mkdev(m,n)  ((uint)((m)<<16| (n)))
 
 // in-memory copy of an inode
+// 当有c指针指向该inode时，kernel会在内存保存该inode的拷贝。
+// ref记录指向该inode的引用数目，（file descriptor/当前工作目录等）
 struct inode {
   uint dev;           // Device number
   uint inum;          // Inode number
